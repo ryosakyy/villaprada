@@ -1,0 +1,19 @@
+:root {
+    --fondo: #F4F6F9;
+    --texto: #1D2A3A;
+    --card: white;
+}
+
+.dark {
+    --fondo: #0F172A;
+    --texto: #E2E8F0;
+    --card: #1E293B;
+}
+
+body {
+    background: var(--fondo);
+    color: var(--texto);
+}
+.card, .stat-card, .chart-box {
+    background: var(--card) !important;
+}

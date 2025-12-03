@@ -1,0 +1,73 @@
+.page-title {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #1E293B;
+}
+
+/* Barra superior */
+.actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.search-box input {
+    padding: 10px 14px;
+    border: 1px solid #CBD5E1;
+    border-radius: 6px;
+    width: 260px;
+}
+
+/* TABLA */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 3px 12px rgba(0,0,0,0.08);
+}
+
+thead {
+    background: #2D466B;
+    color: white;
+}
+
+th, td {
+    padding: 14px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+tr:hover {
+    background: #F8FAFC;
+}
+
+/* ESTADOS */
+.estado {
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.estado-pendiente { background: #FFE69B; color: #854D0E; }
+.estado-confirmado { background: #A7F3D0; color: #065F46; }
+.estado-cancelado { background: #FECACA; color: #B91C1C; }
+
+/* Botones */
+.btn-sm {
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    font-size: 13px;
+}
+
+.btn-view { background: #2D466B; color: white; }
+.btn-edit { background: #C7B08A; color: #1E293B; }
+.btn-delete { background: #EF4444; color: white; }
+
+.btn-edit:hover { background: #B8955A; }
+.btn-delete:hover { background: #DC2626; }

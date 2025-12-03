@@ -1,0 +1,70 @@
+.page-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1E293B;
+    margin-bottom: 20px;
+}
+
+/* Contenedor */
+.report-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+}
+
+.report-card h3 {
+    margin: 0 0 12px;
+    color: #1E293B;
+}
+
+/* Botones */
+.btn-primary {
+    background: #2D466B;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: .2s;
+}
+.btn-primary:hover { background: #1B324D; }
+
+.btn-excel {
+    background: #22C55E;
+    color: white;
+}
+.btn-excel:hover { background: #16A34A; }
+
+.btn-pdf {
+    background: #EF4444;
+    color: white;
+}
+.btn-pdf:hover { background: #DC2626; }
+
+/* Tabla */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 15px;
+}
+
+thead {
+    background: #2D466B;
+    color: white;
+}
+
+th, td {
+    padding: 14px;
+    font-size: 15px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+tr:hover {
+    background: #F8FAFC;
+}

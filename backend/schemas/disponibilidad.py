@@ -1,0 +1,30 @@
+from pydantic import BaseModel
+from datetime import date
+
+# Base compartida
+class DisponibilidadBase(BaseModel):
+    fecha: date
+    estado: str = "bloqueado"
+    motivo: str | None = None
+
+
+# Crear
+class DisponibilidadCreate(DisponibilidadBase):
+    pass
+
+
+# Actualizar (idéntico al create)
+class DisponibilidadUpdate(DisponibilidadBase):
+    pass
+
+
+# Output
+class DisponibilidadOut(BaseModel):
+    id: int
+    fecha: date
+    estado: str
+    motivo: str | None
+
+    # Pydantic v2
+    class Config:
+        from_attributes = True

@@ -1,0 +1,186 @@
+/* ============================================================
+   ESTILOS PERSONALIZADOS PARA DISPONIBILIDAD – VILLA PRADA
+   Paleta: #2D466B (azul), #C7B08A (dorado), #B89252 (hover),
+           #F8FAFC fondo ligero, #475569 textos
+============================================================ */
+
+/* ============================
+    CONTENEDOR PRINCIPAL
+============================ */
+.main-content {
+    padding: 25px;
+}
+
+/* Título */
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1E293B;
+    margin-bottom: 20px;
+}
+
+/* ============================
+    CALENDARIO
+============================ */
+.calendar-container {
+    background: white;
+    padding: 22px;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+    border-left: 6px solid #C7B08A;
+}
+
+/* FullCalendar Overrides */
+.fc .fc-toolbar-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #2D466B;
+}
+
+.fc .fc-button {
+    background: #2D466B !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 7px 14px !important;
+    color: white !important;
+}
+
+.fc .fc-button:hover {
+    background: #1B324D !important;
+}
+
+.fc .fc-daygrid-day-number {
+    font-weight: 600;
+    color: #475569;
+}
+
+.fc .fc-daygrid-day:hover {
+    background: #F8FAFC;
+    cursor: pointer;
+}
+
+/* Estados de colores */
+.fc-event {
+    border: none !important;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 6px !important;
+}
+
+.fc-event-title {
+    text-align: center;
+}
+
+/* ============================
+    MODAL
+============================ */
+.modal-bg {
+    position: fixed;
+    top:0; 
+    left:0;
+    width:100%; 
+    height:100%;
+    background: rgba(0,0,0,0.55);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index: 999;
+}
+
+.modal-card {
+    background:white;
+    width:420px;
+    padding:22px;
+    border-radius:12px;
+    box-shadow:0 4px 20px rgba(0,0,0,.20);
+    border-top: 6px solid #C7B08A;
+    animation: fadeModal .2s ease-out;
+}
+
+@keyframes fadeModal {
+    from { transform:translateY(-10px); opacity:0; }
+    to   { transform:translateY(0); opacity:1; }
+}
+
+.modal-card h3 {
+    margin-bottom: 16px;
+    font-size: 20px;
+    color: #2D466B;
+    font-weight: 700;
+}
+
+/* Inputs */
+.modal-card input,
+.modal-card select,
+.modal-card textarea {
+    width:100%;
+    padding:11px;
+    border-radius:8px;
+    border:1px solid #CBD5E1;
+    margin-bottom:12px;
+    font-size:14px;
+    background:#F8FAFC;
+    transition:.2s;
+}
+
+.modal-card input:focus,
+.modal-card select:focus,
+.modal-card textarea:focus {
+    outline: none;
+    border-color:#C7B08A;
+    background:white;
+}
+
+/* Buttons */
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.btn {
+    padding: 11px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: .2s;
+}
+
+/* Guardar */
+.btn-primary {
+    background: #2D466B;
+    color: white;
+}
+.btn-primary:hover {
+    background: #1B324D;
+}
+
+/* Eliminar */
+.btn-danger {
+    background: #EF4444;
+    color: white;
+}
+.btn-danger:hover {
+    background: #DC2626;
+}
+
+/* Cerrar */
+.btn-warning {
+    background: #C7B08A;
+    color: #1E293B;
+}
+.btn-warning:hover {
+    background: #B89252;
+}
+
+/* ============================
+    RESPONSIVE
+============================ */
+@media (max-width: 480px) {
+    .modal-card {
+        width: 90%;
+    }
+}

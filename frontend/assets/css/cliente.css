@@ -1,0 +1,104 @@
+.clientes-container {
+    padding: 20px;
+}
+
+.btn-add {
+    background: #2D466B;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-weight: bold;
+    transition: .3s;
+}
+.btn-add:hover {
+    background: #1B2E45;
+}
+
+.tabla-clientes {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.tabla-clientes th {
+    background: #2D466B;
+    color: white;
+    padding: 12px;
+}
+
+.tabla-clientes td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn-accion {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 6px;
+}
+
+.btn-edit {
+    background: #C7B08A;
+    color: #1D2533;
+}
+
+.btn-delete {
+    background: #E63946;
+    color: white;
+}
+
+/* MODAL */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    width: 420px;
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-guardar {
+    background: #2D466B;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-cerrar {
+    background: #999;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
