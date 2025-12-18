@@ -1,37 +1,32 @@
-// frontend/assets/js/layout_loader.js
+async function loadHTML(id, path) {
+    const el = document.getElementById(id);
+    if (!el) return;
 
-/**
- * RUTAS CORRECTAS: los componentes están en /components
- * directamente bajo la raíz del servidor estático.
- */
-const SIDEBAR_PATH = "/components/sidebar_admin.html";
-const NAVBAR_PATH  = "/components/navbar_admin.html";
+    const res = await fetch(path);
 
-/**
- * Inserta el HTML dentro del contenedor indicado.
- */
-function cargarComponente(ruta, contenedorId) {
-    const contenedor = document.getElementById(contenedorId);
-    if (!contenedor) return;
+    // Si el archivo no existe, no metas el HTML del 404 al layout
+    if (!res.ok) {
+        console.error(`No se pudo cargar ${path} -> ${res.status}`);
+        return;
+    }
 
-    fetch(ruta)
-        .then(res => {
-            if (!res.ok) {
-                console.error(`[layout_loader] No se pudo cargar ${ruta} -> ${res.status}`);
-                return "";
-            }
-            return res.text();
-        })
-        .then(html => {
-            if (html) contenedor.innerHTML = html;
-        })
-        .catch(err => {
-            console.error("[layout_loader] Error al cargar:", ruta, err);
-        });
+    el.innerHTML = await res.text();
 }
 
-// Cargar al iniciar
-document.addEventListener("DOMContentLoaded", () => {
-    cargarComponente(SIDEBAR_PATH, "sidebar-container");
-    cargarComponente(NAVBAR_PATH, "navbar-container");
-});
+(function() {
+    const layout = document.body.dataset.layout; // "public" o "admin"
+    const isAdminByPath = location.pathname.includes("/admin/");
+    const isAdmin = layout ? layout === "admin" : isAdminByPath;
+
+    if (isAdmin) {
+        loadHTML("navbar-container", `/components/navbar_admin.html`);
+        loadHTML("footer-container", `/components/footer_admin.html`);
+
+        if (document.getElementById("sidebar-container")) {
+            loadHTML("sidebar-container", `/components/sidebar_admin.html`);
+        }
+    } else {
+        loadHTML("navbar-container", `/components/navbar_public.html`);
+        loadHTML("footer-container", `/components/footer_public.html`);
+    }
+})();

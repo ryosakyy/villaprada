@@ -3,17 +3,25 @@
 ============================================================ */
 const API = "http://127.0.0.1:8000";
 
-function getToken() { return localStorage.getItem("token"); }
+function getToken() {
+    return localStorage.getItem("token") || "";
+}
 
 async function apiFetch(url, options = {}) {
-    options.headers = {
-        ...(options.headers || {}),
-        "Authorization": "Bearer " + getToken(),
-        "Content-Type": "application/json",
-    };
+    const token = getToken();
+    const headers = {...(options.headers || {}) };
 
-    const res = await fetch(url, options);
+    // Solo manda Authorization si hay token
+    if (token) headers["Authorization"] = "Bearer " + token;
 
+    // Si NO es FormData y hay body, asume JSON
+    if (options.body && !(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    const res = await fetch(url, {...options, headers });
+
+    // Si sesión expirada, redirige al login
     if (res.status === 401) {
         alert("Sesión expirada");
         localStorage.clear();
@@ -28,8 +36,7 @@ async function apiFetch(url, options = {}) {
 ============================================================ */
 let calendar;
 
-document.addEventListener("DOMContentLoaded", function () {
-
+document.addEventListener("DOMContentLoaded", function() {
     calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
         initialView: "dayGridMonth",
         height: 680,
@@ -42,19 +49,16 @@ document.addEventListener("DOMContentLoaded", function () {
             right: "dayGridMonth,timeGridWeek,timeGridDay"
         },
 
-        events: async function (info, success, fail) {
+        events: async function(info, success, fail) {
             try {
-                const res = await apiFetch(`${API}/disponibilidad`);
+                const res = await apiFetch(`${API}/disponibilidad/`);
                 const data = await res.json();
 
                 const eventos = data.map(d => ({
                     id: d.id,
                     title: d.estado.toUpperCase(),
                     date: d.fecha,
-                    color:
-                        d.estado === "reservado" ? "#EF4444" :
-                        d.estado === "bloqueado" ? "#6B7280" :
-                        "#22C55E"
+                    color: d.estado === "reservado" ? "#EF4444" : d.estado === "bloqueado" ? "#6B7280" : "#22C55E"
                 }));
 
                 success(eventos);
@@ -118,16 +122,16 @@ async function cargarDisponibilidad(id) {
 /* ============================================================
    GUARDAR
 ============================================================ */
-btnGuardar.onclick = async () => {
+btnGuardar.onclick = async() => {
     const payload = {
         fecha: fechaInput.value,
         estado: estadoInput.value,
         motivo: motivoInput.value
     };
 
-    const url = editId
-        ? `${API}/disponibilidad/${editId}`
-        : `${API}/disponibilidad/`;
+    const url = editId ?
+        `${API}/disponibilidad/${editId}` :
+        `${API}/disponibilidad/`;
 
     const res = await apiFetch(url, {
         method: editId ? "PUT" : "POST",
@@ -144,7 +148,7 @@ btnGuardar.onclick = async () => {
 /* ============================================================
    ELIMINAR
 ============================================================ */
-btnEliminar.onclick = async () => {
+btnEliminar.onclick = async() => {
     if (!confirm("¿Eliminar disponibilidad?")) return;
 
     const res = await apiFetch(`${API}/disponibilidad/${editId}`, { method: "DELETE" });

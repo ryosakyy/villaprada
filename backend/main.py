@@ -28,7 +28,8 @@ from models import (
 app = FastAPI(
     title="Sistema Villa Prada",
     version="1.0.0",
-    description="API para gestión de eventos, contratos y finanzas"
+    description="API para gestión de eventos, contratos y finanzas",
+    redirect_slashes=False  # ✅ evita 307 /clientes -> /clientes/
 )
 
 # =============================================================
@@ -43,7 +44,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],         # Cambiar en producción
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"],         # ✅ permite Authorization
     allow_credentials=True
 )
 
@@ -67,6 +68,3 @@ app.include_router(usuarios.router)
 @app.get("/")
 def root():
     return {"message": "API funcionando"}
-
-from fastapi.middleware.cors import CORSMiddleware
-

@@ -1,16 +1,14 @@
-// Insertar el sidebar dinámicamente
-fetch("../assets/components/sidebar_admin.html")
-    .then(res => res.text())
-    .then(html => {
-        document.getElementById("sidebar-container").innerHTML = html;
+// frontend/assets/js/sidebar.js
+// UI: colapsar/expandir sidebar + mover el layout (SOLUCIÓN DEFINITIVA)
 
-        // Después de insertarlo, activar botones
-        setTimeout(() => {
-            const btn = document.getElementById("btnSidebar");
-            const sidebar = document.getElementById("sidebar");
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest("#toggle-sidebar");
+    if (!btn) return;
 
-            btn?.addEventListener("click", () => {
-                sidebar.classList.toggle("open");
-            });
-        }, 50);
-    });
+    // 1) Colapsar visualmente el sidebar (oculta textos)
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.toggle("collapsed");
+
+    // 2) Colapsar el layout completo (mueve main-content y navbar)
+    document.body.classList.toggle("sidebar-collapsed");
+});

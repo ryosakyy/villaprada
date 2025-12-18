@@ -4,37 +4,41 @@
 const API = "http://127.0.0.1:8000";
 
 /* ============================================================
-   TOKEN + SESIÓN
+   TOKEN / SESIÓN
 ============================================================ */
 function getToken() {
-    return localStorage.getItem("token");
+    return localStorage.getItem("token") || "";
+}
+
+function redirectLogin() {
+    // ruta absoluta segura
+    window.location.href = "/frontend/admin/login.html";
 }
 
 function verificarSesion() {
     if (!getToken()) {
-        // Ruta universal → funciona desde cualquier carpeta
-        window.location.href = "../../login.html";
+        redirectLogin();
     }
 }
 
 /* ============================================================
-   FETCH AUTOMÁTICO CON TOKEN
+   FETCH CON TOKEN (NO CONGELADO)
 ============================================================ */
 async function apiFetch(url, options = {}) {
-    options.headers = {
-        ...(options.headers || {}),
-        "Authorization": "Bearer " + getToken(),
-        "Content-Type": "application/json"
-    };
+    const token = getToken();
+    const headers = {...(options.headers || {}) };
 
-    let res = await fetch(url, options);
+    if (token) headers["Authorization"] = "Bearer " + token;
+    if (options.body) headers["Content-Type"] = "application/json";
 
-    // Si token expiró
+    const res = await fetch(url, {...options, headers });
+
+    // Token inválido o expirado
     if (res.status === 401) {
         alert("Su sesión ha expirado");
         localStorage.removeItem("token");
         localStorage.removeItem("usuario");
-        window.location.href = "../../login.html";
+        redirectLogin();
     }
 
     return res;
@@ -44,46 +48,56 @@ async function apiFetch(url, options = {}) {
    LISTAR USUARIOS
 ============================================================ */
 async function cargarUsuarios() {
-    if (!location.href.includes("lista_usuarios")) return;
+    if (!location.pathname.endsWith("lista_usuarios.html")) return;
 
     verificarSesion();
 
-    const res = await apiFetch(`${API}/usuarios`);
-    const data = await res.json();
+    try {
+        const res = await apiFetch(`${API}/usuarios/`);
+        if (!res.ok) throw new Error(res.status);
 
-    const tbody = document.getElementById("tabla-usuarios");
-    tbody.innerHTML = "";
+        const data = await res.json();
+        const tbody = document.getElementById("tabla-usuarios");
+        if (!tbody) return;
 
-    data.forEach(u => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${u.id}</td>
-                <td>${u.nombres}</td>
-                <td>${u.email}</td>
-                <td>${u.rol}</td>
-                <td>${u.activo ? "Activo" : "Inactivo"}</td>
-                <td>
-                    <button class="btn-edit" onclick="editarUsuario(${u.id})">Editar</button>
-                    <button class="btn-delete" onclick="eliminarUsuario(${u.id})">Eliminar</button>
-                </td>
-            </tr>
-        `;
-    });
+        tbody.innerHTML = "";
+
+        (data || []).forEach(u => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${u.id}</td>
+                    <td>${u.nombres}</td>
+                    <td>${u.email}</td>
+                    <td>${u.rol}</td>
+                    <td>${u.activo ? "Activo" : "Inactivo"}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editarUsuario(${u.id})">Editar</button>
+                        <button class="btn-delete" onclick="eliminarUsuario(${u.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (e) {
+        console.error("Error cargando usuarios:", e);
+    }
 }
 
 cargarUsuarios();
 
 /* ============================================================
-   BUSCADOR EN TIEMPO REAL
+   BUSCADOR
 ============================================================ */
-document.getElementById("buscador")?.addEventListener("keyup", () => {
-    const texto = document.getElementById("buscador").value.toLowerCase();
-    const filas = document.querySelectorAll("#tabla-usuarios tr");
-
-    filas.forEach(fila => {
-        fila.style.display = fila.textContent.toLowerCase().includes(texto) ? "" : "none";
+const buscador = document.getElementById("buscador");
+if (buscador) {
+    buscador.addEventListener("keyup", () => {
+        const texto = buscador.value.toLowerCase();
+        document.querySelectorAll("#tabla-usuarios tr").forEach(fila => {
+            fila.style.display = fila.textContent.toLowerCase().includes(texto) ?
+                "" :
+                "none";
+        });
     });
-});
+}
 
 /* ============================================================
    REDIRECCIONAR A EDITAR
@@ -98,10 +112,7 @@ function editarUsuario(id) {
 async function eliminarUsuario(id) {
     if (!confirm("¿Eliminar usuario?")) return;
 
-    const res = await apiFetch(`${API}/usuarios/${id}`, {
-        method: "DELETE"
-    });
-
+    const res = await apiFetch(`${API}/usuarios/${id}`, { method: "DELETE" });
     if (!res.ok) {
         alert("Error al eliminar usuario");
         return;
@@ -112,7 +123,7 @@ async function eliminarUsuario(id) {
 }
 
 /* ============================================================
-   REGISTRAR USUARIO (ADMIN)
+   REGISTRAR USUARIO
 ============================================================ */
 async function registrarUsuario() {
     verificarSesion();
@@ -125,7 +136,7 @@ async function registrarUsuario() {
         activo: true
     };
 
-    const res = await apiFetch(`${API}/usuarios`, {
+    const res = await apiFetch(`${API}/usuarios/`, {
         method: "POST",
         body: JSON.stringify(data)
     });
@@ -143,12 +154,12 @@ async function registrarUsuario() {
    CARGAR USUARIO PARA EDITAR
 ============================================================ */
 async function cargarUsuarioEditar() {
-    if (!location.href.includes("editar_usuario")) return;
+    if (!location.pathname.endsWith("editar_usuario.html")) return;
 
     verificarSesion();
 
-    const params = new URLSearchParams(location.search);
-    const id = params.get("id");
+    const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
 
     const res = await apiFetch(`${API}/usuarios/${id}`);
     if (!res.ok) {
@@ -158,9 +169,9 @@ async function cargarUsuarioEditar() {
 
     const u = await res.json();
 
-    document.getElementById("nombres").value = u.nombres;
-    document.getElementById("email").value = u.email;
-    document.getElementById("rol").value = u.rol;
+    document.getElementById("nombres").value = u.nombres || "";
+    document.getElementById("email").value = u.email || "";
+    document.getElementById("rol").value = u.rol || "";
     document.getElementById("activo").value = u.activo ? "1" : "0";
 }
 
@@ -172,8 +183,8 @@ cargarUsuarioEditar();
 async function guardarCambios() {
     verificarSesion();
 
-    const params = new URLSearchParams(location.search);
-    const id = params.get("id");
+    const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
 
     const data = {
         nombres: document.getElementById("nombres").value,
@@ -195,3 +206,10 @@ async function guardarCambios() {
     alert("Usuario actualizado");
     window.location.href = "lista_usuarios.html";
 }
+
+/* ============================================================
+   EXPORT GLOBAL
+============================================================ */
+window.registrarUsuario = registrarUsuario;
+window.guardarCambios = guardarCambios;
+window.eliminarUsuario = eliminarUsuario;

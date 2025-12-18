@@ -1,61 +1,85 @@
 /* ============================================================
-   CONFIG GLOBAL + TOKEN
+   CONFIG GLOBAL
 ============================================================ */
 const API = "http://127.0.0.1:8000";
-const token = localStorage.getItem("token");
 
-// Helper fetch con token
+/* ============================================================
+   FETCH CON TOKEN (NO CONGELADO)
+============================================================ */
 async function apiFetch(url, options = {}) {
-    options.headers = {
-        ...(options.headers || {}),
-        "Authorization": `Bearer ${token}`
-    };
-    return await fetch(url, options);
+    const token = localStorage.getItem("token") || "";
+    const headers = {...(options.headers || {}) };
+
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    return fetch(url, {...options, headers });
 }
 
 /* ============================================================
    LISTAR RESERVAS
 ============================================================ */
 async function cargarReservas() {
-    if (!location.href.includes("lista_reservas")) return;
+    if (!location.pathname.endsWith("lista_reservas.html")) return;
 
-    const res = await apiFetch(`${API}/reservas`);
-    const data = await res.json();
+    try {
+        const res = await apiFetch(`${API}/reservas/`);
+        if (!res.ok) throw new Error(res.status);
 
-    const tbody = document.getElementById("tabla-reservas");
-    tbody.innerHTML = "";
+        const data = await res.json();
+        const tbody = document.getElementById("tabla-reservas");
+        if (!tbody) return;
 
-    data.forEach(r => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${r.id}</td>
-                <td>${r.cliente?.nombres ?? "-"}</td>
-                <td>${r.fecha_reserva}</td>
-                <td>${r.fecha_evento}</td>
-                <td><span class="estado estado-${r.estado.toLowerCase()}">${r.estado}</span></td>
-                <td>
-                    <a href="ver_reserva.html?id=${r.id}" class="btn-sm btn-view">Ver</a>
-                    <a href="editar_reserva.html?id=${r.id}" class="btn-sm btn-edit">Editar</a>
-                    <button class="btn-sm btn-delete" onclick="eliminarReserva(${r.id})">Eliminar</button>
-                </td>
-            </tr>
-        `;
-    });
+        tbody.innerHTML = "";
+
+        (data || []).forEach(r => {
+            let clienteNombre = "-";
+            if (r && r.cliente && r.cliente.nombres) {
+                clienteNombre = r.cliente.nombres;
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>${r.id || "-"}</td>
+                    <td>${clienteNombre}</td>
+                    <td>${r.fecha_reserva || "-"}</td>
+                    <td>${r.fecha_evento || "-"}</td>
+                    <td>
+                        <span class="estado estado-${String(r.estado || "").toLowerCase()}">
+                            ${r.estado || "-"}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="ver_reserva.html?id=${r.id}" class="btn-sm btn-view">Ver</a>
+                        <a href="editar_reserva.html?id=${r.id}" class="btn-sm btn-edit">Editar</a>
+                        <button class="btn-sm btn-delete"
+                            onclick="eliminarReserva(${r.id})">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+    } catch (e) {
+        console.error("Error cargando reservas:", e);
+    }
 }
 
 cargarReservas();
 
 /* ============================================================
-   BUSCADOR EN TIEMPO REAL
+   BUSCADOR
 ============================================================ */
-document.getElementById("buscador")?.addEventListener("keyup", e => {
-    const texto = e.target.value.toLowerCase();
-    const filas = document.querySelectorAll("#tabla-reservas tr");
-
-    filas.forEach(f => {
-        f.style.display = f.textContent.toLowerCase().includes(texto) ? "" : "none";
+const buscador = document.getElementById("buscador");
+if (buscador) {
+    buscador.addEventListener("keyup", e => {
+        const texto = e.target.value.toLowerCase();
+        document.querySelectorAll("#tabla-reservas tr").forEach(fila => {
+            fila.style.display = fila.textContent.toLowerCase().includes(texto) ?
+                "" :
+                "none";
+        });
     });
-});
+}
 
 /* ============================================================
    ELIMINAR RESERVA
@@ -63,10 +87,7 @@ document.getElementById("buscador")?.addEventListener("keyup", e => {
 async function eliminarReserva(id) {
     if (!confirm("¿Eliminar esta reserva?")) return;
 
-    const res = await apiFetch(`${API}/reservas/${id}`, {
-        method: "DELETE"
-    });
-
+    const res = await apiFetch(`${API}/reservas/${id}`, { method: "DELETE" });
     if (!res.ok) {
         alert("Error al eliminar la reserva");
         return;
@@ -87,7 +108,7 @@ async function registrarReserva() {
         estado: document.getElementById("estado").value
     };
 
-    const res = await apiFetch(`${API}/reservas`, {
+    const res = await apiFetch(`${API}/reservas/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -106,17 +127,20 @@ async function registrarReserva() {
    CARGAR RESERVA PARA EDITAR
 ============================================================ */
 async function cargarEditarReserva() {
-    if (!location.href.includes("editar_reserva")) return;
+    if (!location.pathname.endsWith("editar_reserva.html")) return;
 
     const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
 
     const res = await apiFetch(`${API}/reservas/${id}`);
+    if (!res.ok) return alert("No se pudo cargar la reserva");
+
     const r = await res.json();
 
-    document.getElementById("cliente").value = r.cliente_id;
-    document.getElementById("fecha_reserva").value = r.fecha_reserva;
-    document.getElementById("fecha_evento").value = r.fecha_evento;
-    document.getElementById("estado").value = r.estado;
+    document.getElementById("cliente").value = r.cliente_id || "";
+    document.getElementById("fecha_reserva").value = r.fecha_reserva || "";
+    document.getElementById("fecha_evento").value = r.fecha_evento || "";
+    document.getElementById("estado").value = r.estado || "";
 }
 
 cargarEditarReserva();
@@ -126,6 +150,7 @@ cargarEditarReserva();
 ============================================================ */
 async function guardarReserva() {
     const id = new URLSearchParams(window.location.search).get("id");
+    if (!id) return alert("ID inválido");
 
     const data = {
         fecha_reserva: document.getElementById("fecha_reserva").value,
@@ -152,22 +177,32 @@ async function guardarReserva() {
    VER DETALLE RESERVA
 ============================================================ */
 async function cargarDetalle() {
-    if (!location.href.includes("ver_reserva")) return;
+    if (!location.pathname.endsWith("ver_reserva.html")) return;
 
     const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
 
     const res = await apiFetch(`${API}/reservas/${id}`);
+    if (!res.ok) return;
+
     const r = await res.json();
 
-    document.getElementById("det-id").textContent = r.id;
-    document.getElementById("det-cliente").textContent = r.cliente?.nombres ?? "-";
-    document.getElementById("det-fecha-reserva").textContent = r.fecha_reserva;
-    document.getElementById("det-fecha-evento").textContent = r.fecha_evento;
+    document.getElementById("det-id").textContent = r.id || "-";
+    document.getElementById("det-cliente").textContent =
+        r && r.cliente && r.cliente.nombres ? r.cliente.nombres : "-";
+    document.getElementById("det-fecha-reserva").textContent = r.fecha_reserva || "-";
+    document.getElementById("det-fecha-evento").textContent = r.fecha_evento || "-";
 
     const estado = document.getElementById("det-estado");
-    estado.textContent = r.estado;
-    estado.classList.add(`estado-${r.estado.toLowerCase()}`);
+    estado.textContent = r.estado || "-";
+    estado.classList.add(`estado-${String(r.estado || "").toLowerCase()}`);
 }
 
 cargarDetalle();
 
+/* ============================================================
+   EXPORT GLOBAL
+============================================================ */
+window.registrarReserva = registrarReserva;
+window.guardarReserva = guardarReserva;
+window.eliminarReserva = eliminarReserva;

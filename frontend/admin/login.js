@@ -1,22 +1,43 @@
-const API_URL = "http://127.0.0.1:8000";
+/* ============================================================
+   CONFIG GLOBAL
+============================================================ */
+const API = "http://127.0.0.1:8000";
 
-document.getElementById("loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
+/* ============================================================
+   LOGIN
+============================================================ */
+async function login(e) {
+    e.preventDefault(); // ⛔ evita recarga del form
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
-
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
     const errorBox = document.getElementById("error");
+
     errorBox.classList.add("d-none");
 
+    if (!emailInput || !passwordInput) {
+        errorBox.textContent = "Formulario inválido";
+        errorBox.classList.remove("d-none");
+        return;
+    }
+
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    if (!email || !password) {
+        errorBox.textContent = "Ingrese correo y contraseña";
+        errorBox.classList.remove("d-none");
+        return;
+    }
+
     try {
-        const response = await fetch(`${API_URL}/auth/login?email=${email}&password=${password}`, {
-            method: "POST"
-        });
+        const res = await fetch(
+            `${API}/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, { method: "POST" }
+        );
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (!response.ok) {
+        if (!res.ok) {
             errorBox.textContent = data.detail || "Credenciales incorrectas";
             errorBox.classList.remove("d-none");
             return;
@@ -25,11 +46,41 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("usuario", JSON.stringify(data.usuario));
 
-        // 🔥 REDIRECCIÓN CORRECTA
-        window.location.href = "/admin/reportes/dashboard.html";
+        // 🔥 RUTA CORRECTA SEGÚN TU ESTRUCTURA
+        window.location.href = "/frontend/admin/reportes/dashboard.html";
 
-    } catch (error) {
+    } catch (err) {
+        console.error(err);
         errorBox.textContent = "Error de conexión con el servidor";
         errorBox.classList.remove("d-none");
     }
-});
+}
+
+/* ============================================================
+   VERIFICAR SESIÓN
+============================================================ */
+function verificarSesion() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/frontend/admin/login.html";
+    }
+}
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+function logout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("theme");
+    window.location.href = "/frontend/admin/login.html";
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+document.getElementById("loginForm") ? .addEventListener("submit", login);
+
+window.login = login;
+window.logout = logout;
+window.verificarSesion = verificarSesion;

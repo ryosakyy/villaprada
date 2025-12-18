@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Editar Contrato - Villa Prada</title>
@@ -10,29 +11,30 @@
 
     <style>
         .form-card {
-            background: white;
+            background: #fff;
             padding: 25px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
             max-width: 650px;
         }
-
+        
         label {
             font-weight: 600;
             color: #1E293B;
         }
-
-        input, select {
+        
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #CBD5E1;
             border-radius: 8px;
             margin-bottom: 15px;
         }
-
+        
         .btn-primary {
             background: #2D466B;
-            color: white;
+            color: #fff;
             padding: 12px;
             width: 100%;
             border: none;
@@ -40,32 +42,28 @@
             font-size: 16px;
             cursor: pointer;
         }
-
+        
         .btn-primary:hover {
             background: #1B324D;
         }
-
+        
         .blocked {
             background: #F1F5F9;
             pointer-events: none;
-            opacity: 0.8;
+            opacity: .85;
         }
     </style>
 </head>
-<body>
 
-    <!-- SIDEBAR -->
+<body>
     <div id="sidebar-container"></div>
 
     <div class="main-content">
-
-        <!-- NAVBAR -->
         <div id="navbar-container"></div>
 
         <h2 class="title">Editar Contrato</h2>
 
         <div class="form-card">
-
             <label>Cliente</label>
             <input type="text" id="cliente" class="blocked">
 
@@ -80,24 +78,20 @@
 
             <label>Estado</label>
             <select id="estado">
-                <option value="Pendiente">Pendiente</option>
-                <option value="Pagado">Pagado</option>
-                <option value="Anulado">Anulado</option>
-            </select>
+        <option value="Pendiente">Pendiente</option>
+        <option value="Pagado">Pagado</option>
+        <option value="Anulado">Anulado</option>
+      </select>
 
-            <button class="btn-primary" onclick="guardarCambios()">
-                Guardar Cambios
-            </button>
-
+            <button class="btn-primary" type="button" onclick="guardarCambios()">
+        Guardar Cambios
+      </button>
         </div>
-
     </div>
 
-    <!-- JS -->
     <script src="/assets/js/auth.js"></script>
-    <script src="/assets/js/sidebar.js"></script>
-    <script src="/assets/js/navbar.js"></script>
+    <script src="/assets/js/layout_loader.js"></script>
     <script src="/assets/js/contratos.js"></script>
-
 </body>
+
 </html>

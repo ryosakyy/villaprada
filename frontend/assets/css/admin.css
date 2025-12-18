@@ -1,24 +1,79 @@
-.tabla {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background: var(--card);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+:root {
+    --navbar-height: 60px;
+    --blue-900: #2D466B;
+    --gold: #C7B08A;
+    /* ✅ mismas variables que sidebar.css */
+    --sidebar-w: 250px;
+    --sidebar-w-collapsed: 80px;
 }
 
-.tabla th {
-    background: #2D466B;
-    color: white;
-    padding: 12px;
+
+/* CONTENIDO */
+
+.main-content {
+    margin-left: var(--sidebar-w);
+    padding: calc(var(--navbar-height) + 20px) 24px 24px;
+    min-height: 100vh;
+    background: #F8FAFC;
+    box-sizing: border-box;
 }
 
-.tabla td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+
+/* ✅ si colapsa el contenedor */
+
+#sidebar-container.collapsed~.main-content {
+    margin-left: var(--sidebar-w-collapsed);
 }
 
-.tabla tr:hover {
-    background: #F7F7F7;
+
+/* NAVBAR */
+
+.navbar {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-w);
+    right: 0;
+    height: var(--navbar-height);
+    background: var(--blue-900);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 500;
+}
+
+#sidebar-container.collapsed~.main-content .navbar {
+    left: var(--sidebar-w-collapsed);
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.menu-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logout-btn {
+    background: var(--gold);
+    color: #1b1b1b;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
 }

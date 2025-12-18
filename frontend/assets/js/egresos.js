@@ -1,35 +1,42 @@
 /* ===========================
-    CONFIG GLOBAL + TOKEN
+   CONFIG GLOBAL
 =========================== */
 const API = "http://127.0.0.1:8000";
-const token = localStorage.getItem("token");
 
-// Helper Fetch con Token JWT
+/* ===========================
+   FETCH CON TOKEN (NO CONGELADO)
+=========================== */
+function getToken() {
+    return localStorage.getItem("token") || "";
+}
+
 async function apiFetch(url, options = {}) {
-    options.headers = {
-        ...(options.headers || {}),
-        "Authorization": `Bearer ${token}`
-    };
-    return await fetch(url, options);
+    const token = getToken();
+    const headers = {...(options.headers || {}) };
+
+    if (token) headers["Authorization"] = "Bearer " + token;
+    if (options.body) headers["Content-Type"] = "application/json";
+
+    return fetch(url, {...options, headers });
 }
 
 /* ===========================
    LISTAR EGRESOS
 =========================== */
+let egresosCache = [];
 
 async function cargarEgresosLista() {
     const tbody = document.getElementById("tabla-egresos");
     if (!tbody) return;
 
     try {
-        const res = await apiFetch(`${API}/egresos`);
+        const res = await apiFetch(`${API}/egresos/`);
+        if (!res.ok) throw new Error(res.status);
+
         const egresos = await res.json();
+        egresosCache = Array.isArray(egresos) ? egresos : [];
 
-        // Cache para filtros
-        window._egresosCache = egresos;
-
-        pintarTablaEgresos(egresos);
-
+        pintarTablaEgresos(egresosCache);
     } catch (err) {
         console.error("Error cargando egresos:", err);
         tbody.innerHTML = `<tr><td colspan="5">Error al cargar egresos</td></tr>`;
@@ -44,8 +51,10 @@ function pintarTablaEgresos(lista) {
     tbody.innerHTML = "";
     let suma = 0;
 
-    if (!lista.length) {
+    if (!lista || !lista.length) {
         tbody.innerHTML = `<tr><td colspan="5">No hay egresos registrados</td></tr>`;
+        if (totalReg) totalReg.textContent = "0";
+        if (totalMonto) totalMonto.textContent = "S/ 0.00";
         return;
     }
 
@@ -79,18 +88,22 @@ function pintarTablaEgresos(lista) {
 cargarEgresosLista();
 
 /* ===========================
-     FILTROS Y BUSCADOR
+   FILTROS Y BUSCADOR
 =========================== */
-
 function aplicarFiltros() {
-    if (!window._egresosCache) return;
+    if (!egresosCache.length) return;
 
-    const texto = (document.getElementById("buscador")?.value || "").toLowerCase();
-    const desde = document.getElementById("filtro-desde")?.value || "";
-    const hasta = document.getElementById("filtro-hasta")?.value || "";
-    const cat = (document.getElementById("filtro-categoria")?.value || "").toLowerCase();
+    const buscador = document.getElementById("buscador");
+    const filtroDesde = document.getElementById("filtro-desde");
+    const filtroHasta = document.getElementById("filtro-hasta");
+    const filtroCategoria = document.getElementById("filtro-categoria");
 
-    let filtrados = window._egresosCache.filter(e => {
+    const texto = buscador ? buscador.value.toLowerCase() : "";
+    const desde = filtroDesde ? filtroDesde.value : "";
+    const hasta = filtroHasta ? filtroHasta.value : "";
+    const cat = filtroCategoria ? filtroCategoria.value.toLowerCase() : "";
+
+    const filtrados = egresosCache.filter(e => {
         const fecha = (e.fecha || e.fecha_egreso || "").slice(0, 10);
         const concepto = (e.concepto || e.descripcion || "").toLowerCase();
         const categoria = (e.categoria || e.tipo || "").toLowerCase();
@@ -106,28 +119,33 @@ function aplicarFiltros() {
     pintarTablaEgresos(filtrados);
 }
 
-document.getElementById("buscador")?.addEventListener("keyup", aplicarFiltros);
-document.getElementById("filtro-desde")?.addEventListener("change", aplicarFiltros);
-document.getElementById("filtro-hasta")?.addEventListener("change", aplicarFiltros);
-document.getElementById("filtro-categoria")?.addEventListener("change", aplicarFiltros);
+const buscador = document.getElementById("buscador");
+if (buscador) buscador.addEventListener("keyup", aplicarFiltros);
+
+const filtroDesde = document.getElementById("filtro-desde");
+if (filtroDesde) filtroDesde.addEventListener("change", aplicarFiltros);
+
+const filtroHasta = document.getElementById("filtro-hasta");
+if (filtroHasta) filtroHasta.addEventListener("change", aplicarFiltros);
+
+const filtroCategoria = document.getElementById("filtro-categoria");
+if (filtroCategoria) filtroCategoria.addEventListener("change", aplicarFiltros);
 
 /* ===========================
-       REGISTRAR EGRESO
+   REGISTRAR EGRESO
 =========================== */
-
 async function registrarEgreso() {
     const data = {
         fecha: document.getElementById("fecha").value,
         concepto: document.getElementById("concepto").value.trim(),
         categoria: document.getElementById("categoria").value,
         monto: Number(document.getElementById("monto").value),
-        observacion: document.getElementById("observacion").value.trim(),
+        observacion: document.getElementById("observacion").value.trim()
     };
 
-    const res = await apiFetch(`${API}/egresos`, {
+    const res = await apiFetch(`${API}/egresos/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
     });
 
     if (!res.ok) return alert("Error al registrar egreso");
@@ -139,45 +157,44 @@ async function registrarEgreso() {
 /* ===========================
    CARGAR EGRESO PARA EDITAR
 =========================== */
-
 async function cargarEgresoEditar() {
-    if (!location.href.includes("editar_egreso")) return;
+    if (!location.pathname.endsWith("editar_egreso.html")) return;
 
     const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
 
     const res = await apiFetch(`${API}/egresos/${id}`);
     if (!res.ok) return alert("Error al cargar egreso");
 
     const e = await res.json();
 
-    document.getElementById("fecha").value = (e.fecha || e.fecha_egreso).slice(0, 10);
-    document.getElementById("concepto").value = e.concepto || e.descripcion;
-    document.getElementById("categoria").value = e.categoria || e.tipo;
-    document.getElementById("monto").value = e.monto || e.cantidad;
-    document.getElementById("observacion").value = e.observacion || e.nota;
+    document.getElementById("fecha").value = (e.fecha || e.fecha_egreso || "").slice(0, 10);
+    document.getElementById("concepto").value = e.concepto || e.descripcion || "";
+    document.getElementById("categoria").value = e.categoria || e.tipo || "";
+    document.getElementById("monto").value = e.monto || e.cantidad || 0;
+    document.getElementById("observacion").value = e.observacion || e.nota || "";
 }
 
 cargarEgresoEditar();
 
 /* ===========================
-      GUARDAR CAMBIOS
+   GUARDAR CAMBIOS
 =========================== */
-
 async function guardarEgreso() {
     const id = new URLSearchParams(location.search).get("id");
+    if (!id) return;
 
     const data = {
         fecha: document.getElementById("fecha").value,
         concepto: document.getElementById("concepto").value.trim(),
         categoria: document.getElementById("categoria").value,
         monto: Number(document.getElementById("monto").value),
-        observacion: document.getElementById("observacion").value.trim(),
+        observacion: document.getElementById("observacion").value.trim()
     };
 
     const res = await apiFetch(`${API}/egresos/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
     });
 
     if (!res.ok) return alert("Error al actualizar egreso");
@@ -187,16 +204,21 @@ async function guardarEgreso() {
 }
 
 /* ===========================
-        ELIMINAR EGRESO
+   ELIMINAR EGRESO
 =========================== */
-
 async function eliminarEgreso(id) {
     if (!confirm("¿Seguro de eliminar este egreso?")) return;
 
     const res = await apiFetch(`${API}/egresos/${id}`, { method: "DELETE" });
-
     if (!res.ok) return alert("Error al eliminar egreso");
 
     alert("Egreso eliminado correctamente");
     cargarEgresosLista();
 }
+
+/* ===========================
+   EXPORT GLOBAL
+=========================== */
+window.registrarEgreso = registrarEgreso;
+window.guardarEgreso = guardarEgreso;
+window.eliminarEgreso = eliminarEgreso;
